@@ -9,18 +9,18 @@
 #
 # The Hazard Modeller's Toolkit is free software: you can redistribute
 # it and/or modify it under the terms of the GNU Affero General Public
-# License as published by the Free Software Foundation, either version
-# 3 of the License, or (at your option) any later version.
+# License as published by the Free Software Foundation, either version
+# 3 of the License, or (at your option) any later version.
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with OpenQuake. If not, see <http://www.gnu.org/licenses/>
 #
-# DISCLAIMER
-# 
+# DISCLAIMER
+# 
 # The software Hazard Modeller's Toolkit (hmtk) provided herein
-# is released as a prototype implementation on behalf of
+# is released as a prototype implementation on behalf of
 # scientists and engineers working within the GEM Foundation (Global
-# Earthquake Model).
+# Earthquake Model).
 #
 # It is distributed for the purpose of open collaboration and in the
 # hope that it will be useful to the scientific, engineering, disaster
@@ -38,9 +38,9 @@
 # (hazard@globalquakemodel.org).
 #
 # The Hazard Modeller's Toolkit (hmtk) is therefore distributed WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-# for more details.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
 #
 # The GEM Foundation, and the authors of the software, assume no
 # liability for use of the software.
@@ -65,12 +65,12 @@ class CatalogueTestCase(unittest.TestCase):
     """
     def setUp(self):
         self.data_array = np.array([
-                               [1900, 5.00], # E
+                               [1900, 5.00], # E
                                [1910, 6.00], # E
                                [1920, 7.00], # I
                                [1930, 5.00], # E
                                [1970, 5.50], # I
-                               [1960, 5.01], # I
+                               [1960, 5.01], # I
                                [1960, 6.99], # I
                                ])
         self.mt_table = np.array([[1920, 7.0],
@@ -395,7 +395,7 @@ class TestMagnitudeTimeDistribution(unittest.TestCase):
         self.catalogue.data['second'] = np.ones_like(x, dtype=float)
 
 
-    def test_magnitide_time_distribution_no_uncertainties(self):
+    def test_magnitude_time_distribution_no_uncertainties(self):
         """
         Tests the magnitude-depth distribution without uncertainties
         """
@@ -413,3 +413,33 @@ class TestMagnitudeTimeDistribution(unittest.TestCase):
             self.catalogue.get_magnitude_time_distribution(mag_range,
                                                            time_range,
                                                            normalisation=True))
+
+class TestCatalogueConcatenate(unittest.TestCase):
+
+    def setUp(self):
+        cat1 = Catalogue()
+        cat1.end_year = 2000
+        cat1.start_year = 1900
+        cat1.data['eventID'] = [1.0, 2.0, 3.0]
+        cat1.data['magnitude'] = np.array([1.0, 2.0, 3.0])
+
+        cat2 = Catalogue()
+        cat2.end_year = 1990
+        cat2.start_year = 1910
+        cat2.data['eventID'] = [1.0, 2.0, 3.0]
+        cat2.data['magnitude'] = np.array([1.0, 2.0, 3.0])
+
+        self.cat1 = cat1
+        self.cat2 = cat2
+
+    def test_concatenate(self):
+        self.cat1.concatenate(self.cat2)
+        self.assertEqual(self.cat1.end_year, 2000)
+        self.assertEqual(self.cat1.start_year, 1900)
+        self.assertEqual(len(self.cat1.data['magnitude']), 6)
+
+    def test_warning_merge_data(self):
+        self.cat2.data['month'] = np.array([1.0, 2.0, 3.0])
+        with self.assertRaises(Warning):
+            self.cat1.concatenate(self.cat2)
+

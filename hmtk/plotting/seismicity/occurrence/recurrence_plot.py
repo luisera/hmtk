@@ -13,6 +13,11 @@ from openquake.hazardlib.mfd.evenly_discretized import EvenlyDiscretizedMFD
 from openquake.hazardlib.mfd.youngs_coppersmith_1985 import\
         YoungsCoppersmith1985MFD
 
+# Default the figure size
+DEFAULT_SIZE = (8., 6.)
+
+
+
 def _check_recurrence_model_type(input_model):
     """
 
@@ -92,6 +97,7 @@ def plot_trunc_gr_model(aval, bval, min_mag, max_mag, dmag, catalogue=None,
     if not catalogue:
         # Plot only the modelled recurrence
         annual_rates, cumulative_rates = _get_recurrence_model(input_model)
+        plt.figure(figsize=DEFAULT_SIZE)
         plt.semilogy(annual_rates[:, 0], annual_rates[:, 1], 'b-')
         plt.semilogy(annual_rates[:, 0], cumulative_rates, 'r-')
         plt.xlabel('Magnitude', fontsize='large')

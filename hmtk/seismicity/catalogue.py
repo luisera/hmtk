@@ -419,3 +419,72 @@ class Catalogue(object):
             ysigma=self.data['sigmaMagnitude'],
             normalisation=normalisation,
             number_bootstraps=bootstrap)
+
+    def concatenate(self, catalogue):
+        """
+        This method attaches one catalogue to the current one
+        :parameter catalogue: 
+            An instance of :class:`htmk.seismicity.catalogue.Catalogue`
+        """
+
+        atts = getattr(self, 'data')
+        attn = getattr(catalogue, 'data')
+        data = _merge_data(atts, attn)
+
+        if data is not None:
+            setattr(self, 'data', data)
+            for attrib in vars(self):
+                atts = getattr(self, attrib)
+                attn = getattr(catalogue, attrib)
+                if attrib is 'end_year':
+                    setattr(self, attrib, max(atts, attn))
+                elif attrib is 'start_year':
+                    setattr(self, attrib, min(atts, attn))
+                elif attrib is 'data':
+                    pass
+                elif attrib is 'number_earthquakes':
+                    setattr(self, attrib, atts+attn)
+                elif attrib is 'processes':
+                    if atts != attn:
+                        raise ValueError('The catalogues cannot be merged' +
+                                         ' since the they have' +
+                                         ' a different processing history')
+                else:
+                    print attrib
+                    raise ValueError('unknown attibute')
+        self.sort_catalogue_chronologically()
+
+def _merge_data(dat1, dat2):
+    """
+    Merge two data dictionaries containing catalogue data
+    :parameter dictionary dat1:
+        Catalogue data dictionary
+    :parameter dictionary dat2:
+        Catalogue data dictionary
+        
+    :returns:
+        A catalogue data dictionary containing the information originally 
+        included in dat1 and dat2
+    """
+
+    cnt = 0
+    for key in dat1.keys():
+        flg1 = len(dat1[key]) > 0
+        flg2 = len(dat2[key]) > 0
+        if flg1 != flg2:
+            cnt += 1
+
+    if cnt:
+        raise Warning('Cannot merge catalogues with different' + 
+                      ' attributes')
+        return None
+    else: 
+        for key in dat1.keys():
+            if isinstance(dat1[key], np.ndarray): 
+                dat1[key] = np.concatenate((dat1[key], dat2[key]), axis=0)
+            elif isinstance(dat1[key], list): 
+                dat1[key] += dat2[key]
+            else:
+                raise ValueError('Unknown type')
+        return dat1
+
